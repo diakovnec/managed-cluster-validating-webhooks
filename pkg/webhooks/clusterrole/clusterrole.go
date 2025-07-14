@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	WebhookName  string = "clusterroles-validation"
-	docString    string = `Managed OpenShift Customers may not delete the cluster-admin ClusterRole`
+	WebhookName string = "clusterroles-validation"
+	docString   string = `Managed OpenShift Customers may not delete protected ClusterRoles including cluster-admin, view, edit, admin, backplane-*, and system:* roles`
 )
 
 var (
@@ -44,6 +44,7 @@ var (
 		"cluster-admin",
 		"view",
 		"edit",
+		"admin",
 	}
 
 	// Users allowed to delete protected ClusterRoles
@@ -95,7 +96,7 @@ func (s *ClusterRoleWebHook) authorized(request admissionctl.Request) admissionc
 		return ret
 	}
 
-	if strings.HasPrefix(request.AdmissionRequest.UserInfo.Username, "system:") {
+	if strings.HasPrefix(request.AdmissionRequest.UserInfo.Username, "system:") && request.AdmissionRequest.UserInfo.Username != "system:admin" {
 		ret = admissionctl.Allowed("authenticated system: users are allowed")
 		ret.UID = request.AdmissionRequest.UID
 		return ret
@@ -160,9 +161,22 @@ func isAllowedUserGroup(request admissionctl.Request) bool {
 	return false
 }
 
-// isProtectedClusterRole returns true if the ClusterRole is in the protected list
+// isProtectedClusterRole returns true if the ClusterRole is in the protected list or matches protected patterns
 func isProtectedClusterRole(clusterRole *rbacv1.ClusterRole) bool {
-	return slices.Contains(protectedClusterRoles, clusterRole.Name)
+	// Check if it's in the explicit protected list
+	if slices.Contains(protectedClusterRoles, clusterRole.Name) {
+		return true
+	}
+	// Check if it matches backplane pattern
+	if strings.HasPrefix(clusterRole.Name, "backplane-") {
+		return true
+	}
+	// Check if it matches system pattern
+	if strings.HasPrefix(clusterRole.Name, "system:") {
+		return true
+	}
+
+	return false
 }
 
 // GetURI implements Webhook interface
