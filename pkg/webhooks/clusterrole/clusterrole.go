@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	WebhookName  string = "clusterroles-validation"
-	docString    string = `Managed OpenShift Customers may not delete the cluster-admin ClusterRole`
+	WebhookName string = "clusterroles-validation"
+	docString   string = `Managed OpenShift Customers may not delete the cluster-admin ClusterRole`
 )
 
 var (
@@ -95,11 +95,16 @@ func (s *ClusterRoleWebHook) authorized(request admissionctl.Request) admissionc
 		return ret
 	}
 
-	if strings.HasPrefix(request.AdmissionRequest.UserInfo.Username, "system:") {
+	if strings.HasPrefix(request.AdmissionRequest.UserInfo.Username, "system:") && request.AdmissionRequest.UserInfo.Username != "system:admin" {
 		ret = admissionctl.Allowed("authenticated system: users are allowed")
 		ret.UID = request.AdmissionRequest.UID
 		return ret
 	}
+	// if strings.HasPrefix(request.AdmissionRequest.UserInfo.Username, "system:") {
+	// 	ret = admissionctl.Allowed("authenticated system: users are allowed")
+	// 	ret.UID = request.AdmissionRequest.UID
+	// 	return ret
+	// }
 
 	if strings.HasPrefix(request.AdmissionRequest.UserInfo.Username, "kube:") {
 		ret = admissionctl.Allowed("kube: users are allowed")
