@@ -176,6 +176,70 @@
     "documentString": "Managed OpenShift customers may not modify ingress config resources because it can can degrade cluster operators and can interfere with OpenShift SRE monitoring."
   },
   {
+    "webhookName": "ingress-pod-protection",
+    "rules": [
+      {
+        "operations": [
+          "DELETE"
+        ],
+        "apiGroups": [
+          ""
+        ],
+        "apiVersions": [
+          "v1"
+        ],
+        "resources": [
+          "pods"
+        ],
+        "scope": "Namespaced"
+      }
+    ],
+    "webhookObjectSelector": {
+      "matchExpressions": [
+        {
+          "key": "kubernetes.io/metadata.name",
+          "operator": "In",
+          "values": [
+            "openshift-ingress"
+          ]
+        }
+      ]
+    },
+    "documentString": "Managed OpenShift Customers may not delete all pods at once in the openshift-ingress namespace using --all or -l selectors to prevent service disruption."
+  },
+  {
+    "webhookName": "ingress-pod-protection-enhanced",
+    "rules": [
+      {
+        "operations": [
+          "DELETE"
+        ],
+        "apiGroups": [
+          ""
+        ],
+        "apiVersions": [
+          "v1"
+        ],
+        "resources": [
+          "pods"
+        ],
+        "scope": "Namespaced"
+      }
+    ],
+    "webhookObjectSelector": {
+      "matchExpressions": [
+        {
+          "key": "kubernetes.io/metadata.name",
+          "operator": "In",
+          "values": [
+            "openshift-ingress"
+          ]
+        }
+      ]
+    },
+    "documentString": "Enhanced protection against bulk pod deletion in openshift-ingress namespace using rate limiting and pattern detection."
+  },
+  {
     "webhookName": "ingresscontroller-validation",
     "rules": [
       {
@@ -476,7 +540,7 @@
         "scope": "*"
       }
     ],
-    "documentString": "Managed OpenShift customers may not manage any objects in the following APIGroups [splunkforwarder.managed.openshift.io autoscaling.openshift.io ocmagent.managed.openshift.io upgrade.managed.openshift.io config.openshift.io machineconfiguration.openshift.io operator.openshift.io network.openshift.io cloudcredential.openshift.io machine.openshift.io admissionregistration.k8s.io addons.managed.openshift.io cloudingress.managed.openshift.io managed.openshift.io], nor may Managed OpenShift customers alter the APIServer, KubeAPIServer, OpenShiftAPIServer, ClusterVersion, Proxy or SubjectPermission objects."
+    "documentString": "Managed OpenShift customers may not manage any objects in the following APIGroups [splunkforwarder.managed.openshift.io upgrade.managed.openshift.io machineconfiguration.openshift.io operator.openshift.io machine.openshift.io admissionregistration.k8s.io addons.managed.openshift.io cloudingress.managed.openshift.io ocmagent.managed.openshift.io autoscaling.openshift.io config.openshift.io network.openshift.io cloudcredential.openshift.io managed.openshift.io], nor may Managed OpenShift customers alter the APIServer, KubeAPIServer, OpenShiftAPIServer, ClusterVersion, Proxy or SubjectPermission objects."
   },
   {
     "webhookName": "scc-validation",

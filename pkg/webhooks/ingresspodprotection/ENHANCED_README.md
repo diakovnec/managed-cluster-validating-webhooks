@@ -30,12 +30,17 @@ The Enhanced Ingress Pod Protection Webhook (`ingress-pod-protection-enhanced`) 
 ```go
 RateLimitConfig{
     Window:         2 * time.Minute,  // Rate limiting window
-    MaxDeletions:   3,                // Max deletions per window
+    MaxDeletions:   1,                // Max 1 deletion per window (openshift-ingress typically has 2 pods)
     Cooldown:      5 * time.Minute,  // Block duration after limit
     CleanupInterval: 10 * time.Minute, // Memory cleanup frequency
     MaxUserHistory: 1000,            // Max users to track
 }
 ```
+
+**Rationale**: The `openshift-ingress` namespace typically contains only **2 router pods**. Setting `MaxDeletions: 1` means:
+- ✅ Individual pod deletion is allowed
+- ❌ Rapid deletion of both pods (bulk operation) is blocked
+- ✅ Legitimate rolling updates require 2-minute wait between deletions or use of proper tools (`oc rollout restart`)
 
 ### Custom Configuration
 ```go
@@ -84,15 +89,19 @@ oc delete pod router-1-abc123 -n openshift-ingress --as=system:admin
 
 ### ❌ **Blocked Operations**
 ```bash
-# Bulk deletion by regular user (rate limited)
+# Bulk deletion by regular user (exceeds rate limit)
 oc delete pods --all -n openshift-ingress
-oc delete pods -l app=router -n openshift-ingress
+# First pod deleted successfully, second pod blocked!
 
-# Rapid individual deletions (rate limited)
-oc delete pod pod1 -n openshift-ingress
-oc delete pod pod2 -n openshift-ingress
-oc delete pod pod3 -n openshift-ingress  # BLOCKED!
+oc delete pods -l app=router -n openshift-ingress
+# First pod deleted successfully, second pod blocked!
+
+# Rapid individual deletions (exceeds rate limit)
+oc delete pod pod1 -n openshift-ingress  # Allowed
+oc delete pod pod2 -n openshift-ingress  # BLOCKED! (within 2-minute window)
 ```
+
+**Important**: Since openshift-ingress typically has only 2 pods, this configuration effectively blocks bulk deletion attempts while still allowing individual pod management.
 
 ## Error Messages
 

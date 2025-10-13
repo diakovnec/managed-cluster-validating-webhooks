@@ -65,7 +65,7 @@ type RateLimitConfig struct {
 func DefaultRateLimitConfig() *RateLimitConfig {
 	return &RateLimitConfig{
 		Window:          2 * time.Minute,  // 2 minute window
-		MaxDeletions:    3,                // Max 3 deletions per window
+		MaxDeletions:    1,                // Max 1 deletion per window (openshift-ingress typically has 2 pods)
 		Cooldown:        5 * time.Minute,  // 5 minute cooldown
 		CleanupInterval: 10 * time.Minute, // Cleanup every 10 minutes
 		MaxUserHistory:  1000,             // Track up to 1000 users

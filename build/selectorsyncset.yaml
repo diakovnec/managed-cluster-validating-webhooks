@@ -428,6 +428,76 @@ objects:
       metadata:
         annotations:
           service.beta.openshift.io/inject-cabundle: "true"
+        name: sre-ingress-pod-protection
+      webhooks:
+      - admissionReviewVersions:
+        - v1
+        clientConfig:
+          service:
+            name: validation-webhook
+            namespace: openshift-validation-webhook
+            path: /ingress-pod-protection
+        failurePolicy: Ignore
+        matchPolicy: Equivalent
+        name: ingress-pod-protection.managed.openshift.io
+        objectSelector:
+          matchExpressions:
+          - key: kubernetes.io/metadata.name
+            operator: In
+            values:
+            - openshift-ingress
+        rules:
+        - apiGroups:
+          - ""
+          apiVersions:
+          - v1
+          operations:
+          - DELETE
+          resources:
+          - pods
+          scope: Namespaced
+        sideEffects: None
+        timeoutSeconds: 2
+    - apiVersion: admissionregistration.k8s.io/v1
+      kind: ValidatingWebhookConfiguration
+      metadata:
+        annotations:
+          service.beta.openshift.io/inject-cabundle: "true"
+        name: sre-ingress-pod-protection-enhanced
+      webhooks:
+      - admissionReviewVersions:
+        - v1
+        clientConfig:
+          service:
+            name: validation-webhook
+            namespace: openshift-validation-webhook
+            path: /ingress-pod-protection-enhanced
+        failurePolicy: Ignore
+        matchPolicy: Equivalent
+        name: ingress-pod-protection-enhanced.managed.openshift.io
+        objectSelector:
+          matchExpressions:
+          - key: kubernetes.io/metadata.name
+            operator: In
+            values:
+            - openshift-ingress
+        rules:
+        - apiGroups:
+          - ""
+          apiVersions:
+          - v1
+          operations:
+          - DELETE
+          resources:
+          - pods
+          scope: Namespaced
+        sideEffects: None
+        timeoutSeconds: 2
+    - apiVersion: admissionregistration.k8s.io/v1
+      kind: ValidatingWebhookConfiguration
+      metadata:
+        annotations:
+          service.beta.openshift.io/inject-cabundle: "true"
         name: sre-namespace-validation
       webhooks:
       - admissionReviewVersions:
